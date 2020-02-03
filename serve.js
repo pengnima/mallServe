@@ -13,7 +13,9 @@ app.listen(3000, err => {
 app.use(express.urlencoded({ extended: true }));
 
 (async () => {
+  //等待数据库连接好
   await dbPromise;
+
   app.get("/home/multidata", (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
     //查找数据库里的data
@@ -30,7 +32,9 @@ app.use(express.urlencoded({ extended: true }));
     });
   });
 
-  app.get("/src/homeSwiper/*.jpg", (req, res) => {
+  app.get("/src/*/*.jpg", (req, res) => {
+    //为什么这里不用CORS解决跨域？难道这里发出的请求是同源的？
+    //答：因为这个请求是在img标签里的src处发出的，img标签和script一样不受同源策略的限制
     res.sendFile(__dirname + req.url);
   });
 })();
