@@ -1,6 +1,6 @@
 const express = require("express");
 const dbPromise = require("./db/index.js");
-const mallmodel = require("./module/mallmodule.js");
+const mallmodel = require("./mallmodel/mallmodel.js");
 const mongoose = require("mongoose");
 
 const app = express();
