@@ -18,18 +18,38 @@ app.use(express.urlencoded({ extended: true }));
 
   app.get("/home/multidata", (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
-    //查找数据库里的data
-    //{ _id: ObjectId("5e37c0331f93ad260c84ce12") }
-    let id = mongoose.Types.ObjectId("5e37c0331f93ad260c84ce12");
-    mallmodel.find({ _id: id }, (err, data) => {
+    let id;
+    if (req.hostname.indexOf("localhost") != -1) {
+      id = mongoose.Types.ObjectId("5e37c0331f93ad260c84ce12");
+    } else {
+      id = mongoose.Types.ObjectId("5e3963d81f93ad08cc481072");
+    }
+    //findOne返回的是对象
+    mallmodel.findOne({ _id: id }, (err, data) => {
       if (!err) {
         //console.log(data);
         res.send(data);
-        console.log("数据查找成功");
+        console.log("/home/multidata,数据查找成功");
       } else {
-        console.log("数据查询失败");
+        console.log("/home/multidata,数据查询失败");
       }
     });
+  });
+
+  app.get("/home/data", (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    mallmodel.findOne(
+      { sort: req.query.type, page: Number(req.query.page) },
+      (err, data) => {
+        if (!err) {
+          //console.log(data);
+          res.send(data);
+          console.log("/home/data数据查找成功");
+        } else {
+          console.log("/home/data数据查询失败");
+        }
+      }
+    );
   });
 
   app.get("/src/*/*.jpg", (req, res) => {
