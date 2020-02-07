@@ -3,7 +3,9 @@ var Schema = mongoose.Schema;
 
 const schema = new Schema({
   //没有约束，则无法CURD，找到的数据无法.result等等
-  result: Object
+  result: Object,
+  status: Object,
+  iid: String
 });
 
 const mallmodel = mongoose.model("supermalls", schema);
