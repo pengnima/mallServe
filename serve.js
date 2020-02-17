@@ -2,6 +2,8 @@ const express = require("express");
 const dbPromise = require("./db/index.js");
 const homeRouter = require("./router/homeRouter.js");
 const detailRouter = require("./router/detailRouter.js");
+const loginRouter = require("./router/loginRouter.js");
+const registerRouter = require("./router/registerRouter.js");
 
 const app = express();
 
@@ -11,6 +13,7 @@ app.listen(3000, err => {
 });
 
 app.use(express.urlencoded({ extended: true }));
+//
 
 (async () => {
   //等待数据库连接好
@@ -19,6 +22,8 @@ app.use(express.urlencoded({ extended: true }));
   //路由管理
   app.use("/home", homeRouter);
   app.use("/detail", detailRouter);
+  app.use("/register", registerRouter);
+  app.use("/login", loginRouter);
 
   app.get("/src/*/*.jpg", (req, res) => {
     //为什么这里不用CORS解决跨域？难道这里发出的请求是同源的？
