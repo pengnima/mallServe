@@ -14,6 +14,10 @@ let schema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  uid: {
+    type: String,
+    default: Date.now().toString(16)
   }
 });
 
