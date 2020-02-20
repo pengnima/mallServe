@@ -17,7 +17,7 @@ let schema = new mongoose.Schema({
   },
   uid: {
     type: String,
-    default: Date.now().toString(16)
+    required: true
   }
 });
 

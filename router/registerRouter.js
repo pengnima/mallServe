@@ -57,14 +57,17 @@ function findData(name) {
 }
 function createData(name, email, password) {
   return new Promise((resolve, reject) => {
-    usermodel.create({ name, email, password }, (err, data) => {
-      if (!err) {
-        resolve();
-      } else {
-        console.log("创建失败");
-        reject();
+    usermodel.create(
+      { name, email, password, uid: Date.now().toString(16) },
+      (err, data) => {
+        if (!err) {
+          resolve();
+        } else {
+          console.log("创建失败");
+          reject();
+        }
       }
-    });
+    );
   });
 }
 
