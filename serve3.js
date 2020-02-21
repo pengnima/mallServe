@@ -1,23 +1,38 @@
-const express = require("express");
-const path = require("path");
 const jwt = require("jsonwebtoken");
 
 let payload = {
   uid: "777sq"
 };
+
 let secret = "this is a secret";
+
 let token = jwt.sign(payload, secret, {
-  expiresIn: "1d"
+  expiresIn: "1s"
 });
 
-jwt.verify(token, secret, (err, decode) => {
-  if (!err) {
-    console.log(decode.exp);
-  } else {
-    console.log(err.message);
-  }
-});
+setTimeout(() => {
+  jwt.verify(token, secret, (err, decode) => {
+    if (!err) {
+      payload = decode;
+      console.log(decode);
+    } else {
+      console.log(err.name);
+      let str = new Buffer.from(token.split(".")[1], "base64");
+      console.log(JSON.parse(str.toString()));
+    }
+  });
+}, 2000);
 
-console.log(token);
+// delete payload.exp;
+// delete payload.iat;
+// let token2 = jwt.sign(payload, secret, {
+//   expiresIn: "2d"
+// });
+// console.log(token2);
+// jwt.verify(token2, secret, (err, decode) => {
+//   if (!err) {
+//     console.log(decode);
+//   }
+// });
 
-console.log(Date.now());
+// console.log(token);

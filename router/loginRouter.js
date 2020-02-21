@@ -12,20 +12,57 @@ router.post("/check", (req, res) => {
   let rb = req.body;
   let tokenDecode = null;
   let refreshTokenDecode = null;
+  let obj = {
+    isExpire: false,
+    newToken: ""
+  };
+  // 检测短期的token
+  let c1 = checkToken(rb.token, secret)
+    .then(decode => {
+      tokenDecode = decode;
+    })
+    .catch(err => {
+      //token过期了也会掉入catch中，会导致 tokenDecode 无法取得正确的payload。
+      tokenDecode = catchErr(err.message, rb.token);
+    });
 
-  let c1 = checkToken(rb.token, secret).then(decode => {
-    tokenDecode = decode;
-  });
+  //检测长期的token
   let c2 = null;
   if (rb.refreshToken != "") {
-    c2 = checkToken(rb.refreshToken, secret).then(decode => {
-      refreshTokenDecode = decode;
-    });
+    c2 = checkToken(rb.refreshToken, secret)
+      .then(decode => {
+        refreshTokenDecode = decode;
+      })
+      .catch(err => {
+        refreshTokenDecode = catchErr(err.message, rb.refreshToken);
+      });
   }
 
+  //检测完2个token之后才执行
   Promise.all([c1, c2]).then(() => {
-    console.log(tokenDecode, refreshTokenDecode);
-    res.send({ tokenDecode, refreshTokenDecode });
+    //1. 判断 token是否被篡改
+    if (refreshTokenDecode == "err" || tokenDecode == "err") {
+      obj.isExpire = true;
+      console.log("可能被篡改了");
+      res.send(obj);
+    } else {
+      //2. 没被篡改，那再判断 短期token是否到期
+      if (tokenDecode.exp * 1000 < Date.now()) {
+        console.log("过期了");
+
+        //3. 判断是否有长期token，且长期token是否到期
+        if (refreshTokenDecode && refreshTokenDecode.exp * 1000 > Date.now()) {
+          delete tokenDecode.exp;
+          delete tokenDecode.iat;
+          obj.newToken = createToken(tokenDecode, secret, "false").token; //新token
+          console.log("整了个新Token");
+        } else {
+          // 无长期token 或 长期token到期，那么就真正判定为 过期
+          obj.isExpire = true;
+        }
+      }
+      res.send(obj);
+    }
   });
 });
 
@@ -56,25 +93,25 @@ router.post("/", (req, res) => {
 
 module.exports = router;
 
+//检测
 function checkToken(token, secret) {
   return new Promise((reslove, reject) => {
     jwt.verify(token, secret, (err, decode) => {
       if (!err) {
-        console.log(decode);
         reslove(decode);
       } else {
-        console.log(err.message, "这里吗");
-        reject();
+        reject(err);
       }
     });
   });
 }
 
+//创建
 function createToken(payload, secret, isKeep) {
   let refreshToken = null;
-  // 2小时
+  // 1小时
   let token = jwt.sign(payload, secret, {
-    expiresIn: "2h"
+    expiresIn: "1h"
   });
 
   // 7天
@@ -84,4 +121,15 @@ function createToken(payload, secret, isKeep) {
     });
   }
   return { token, refreshToken };
+}
+
+//抓取错误并返回数据
+function catchErr(err, tokenName) {
+  if (err != "jwt expired") {
+    return "err";
+  } else {
+    return JSON.parse(
+      new Buffer.from(tokenName.split(".")[1], "base64").toString()
+    );
+  }
 }
