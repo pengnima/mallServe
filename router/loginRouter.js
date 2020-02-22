@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const usermodel = require("../mallmodel/usermodel.js");
+const userInformodel = require("../mallmodel/userInformodel.js");
 const jwt = require("jsonwebtoken");
 
 //作为密钥
@@ -7,6 +8,26 @@ const secret = "this is a secret";
 
 const router = Router();
 
+router.post("/quit", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  let rb = req.body;
+
+  let newObj = {
+    token: rb.token.split(".")[2],
+    refreshToken: rb.refreshToken.split(".")[2]
+  };
+  updateInfor(rb.uid, newObj)
+    .then(() => {
+      res.send(true);
+    })
+    .catch(() => {
+      res.send(false);
+    });
+});
+
+/**
+ * 检测函数
+ * */
 router.post("/check", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
   let rb = req.body;
@@ -16,6 +37,8 @@ router.post("/check", (req, res) => {
     isExpire: false,
     newToken: ""
   };
+  let rt = rb.token.split(".")[2];
+
   // 检测短期的token
   let c1 = checkToken(rb.token, secret)
     .then(decode => {
@@ -46,22 +69,37 @@ router.post("/check", (req, res) => {
       console.log("可能被篡改了");
       res.send(obj);
     } else {
-      //2. 没被篡改，那再判断 短期token是否到期
-      if (tokenDecode.exp * 1000 < Date.now()) {
-        console.log("过期了");
+      //1.5  判断是否是注销的token
+      userInformodel.findOne({ uid: tokenDecode.uid }, (err, data) => {
+        if (!err) {
+          if (rt == data.uToken.token || rt == data.uToken.refreshToken) {
+            console.log("可能被截取了token，重新登录吧");
+            res.send({ isExpire: true, newToken: "" });
+          } else {
+            console.log("和注销的token不同，可过");
+            if (tokenDecode.exp * 1000 < Date.now()) {
+              console.log("过期了");
 
-        //3. 判断是否有长期token，且长期token是否到期
-        if (refreshTokenDecode && refreshTokenDecode.exp * 1000 > Date.now()) {
-          delete tokenDecode.exp;
-          delete tokenDecode.iat;
-          obj.newToken = createToken(tokenDecode, secret, "false").token; //新token
-          console.log("整了个新Token");
-        } else {
-          // 无长期token 或 长期token到期，那么就真正判定为 过期
-          obj.isExpire = true;
+              //3. 判断是否有长期token，且长期token是否到期
+              if (
+                refreshTokenDecode &&
+                refreshTokenDecode.exp * 1000 > Date.now()
+              ) {
+                delete tokenDecode.exp;
+                delete tokenDecode.iat;
+                obj.newToken = createToken(tokenDecode, secret, "false").token; //新token
+                console.log("整了个新Token");
+              } else {
+                // 无长期token 或 长期token到期，那么就真正判定为 过期
+                obj.isExpire = true;
+              }
+            }
+            res.send(obj);
+          }
         }
-      }
-      res.send(obj);
+      });
+
+      //2. 没被篡改，那再判断 短期token是否到期
     }
   });
 });
@@ -82,7 +120,6 @@ router.post("/", (req, res) => {
         };
 
         let obj = createToken(payload, secret, rb.isKeep);
-        // obj.uid = data.uid;
         res.send(obj);
       } else {
         res.send(data);
@@ -92,6 +129,22 @@ router.post("/", (req, res) => {
 });
 
 module.exports = router;
+//更新infor表
+function updateInfor(uid, obj) {
+  return new Promise((reslove, reject) => {
+    userInformodel.updateOne(
+      { uid },
+      { $set: { uToken: obj } },
+      (err, data) => {
+        if (!err) {
+          reslove();
+        } else {
+          reject();
+        }
+      }
+    );
+  });
+}
 
 //检测
 function checkToken(token, secret) {

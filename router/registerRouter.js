@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const usermodel = require("../mallmodel/usermodel.js");
+const userInformodel = require("../mallmodel/userInformodel.js");
 
 const router = Router();
 
@@ -27,9 +28,14 @@ router.post("/", (req, res) => {
 
   Promise.all([f1, f2]).then(() => {
     if (obj.status === 0) {
-      createData(rb.user, rb.email, rb.password).then(() => {
-        obj.success = true;
-        res.send(obj);
+      //创建账号
+      createData(rb.user, rb.email, rb.password).then(data => {
+        //创建Infor表
+        createInfor(data.name, data.uid).then(() => {
+          obj.success = true;
+          console.log(obj);
+          res.send(obj);
+        });
       });
     } else {
       //失败
@@ -55,19 +61,33 @@ function findData(name) {
     });
   });
 }
+
 function createData(name, email, password) {
   return new Promise((resolve, reject) => {
     usermodel.create(
       { name, email, password, uid: Date.now().toString(16) },
       (err, data) => {
         if (!err) {
-          resolve();
+          resolve(data);
         } else {
-          console.log("创建失败");
+          console.log("创建Token失败");
           reject();
         }
       }
     );
+  });
+}
+
+function createInfor(name, uid) {
+  return new Promise((reslove, reject) => {
+    userInformodel.create({ name, uid }, (err, data) => {
+      if (!err) {
+        reslove();
+      } else {
+        console.log("创建失败");
+        reject();
+      }
+    });
   });
 }
 

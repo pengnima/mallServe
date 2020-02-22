@@ -22,17 +22,3 @@ setTimeout(() => {
     }
   });
 }, 2000);
-
-// delete payload.exp;
-// delete payload.iat;
-// let token2 = jwt.sign(payload, secret, {
-//   expiresIn: "2d"
-// });
-// console.log(token2);
-// jwt.verify(token2, secret, (err, decode) => {
-//   if (!err) {
-//     console.log(decode);
-//   }
-// });
-
-// console.log(token);
