@@ -17,6 +17,14 @@ let schema = new Schema({
     type: Array,
     default: []
   },
+  cartItem: {
+    type: Array,
+    default: []
+  },
+  uImg: {
+    type: String,
+    default: "assets/img/profile/avatar.svg"
+  },
   //该用户的token(只记录token的第三部分即可)
   uToken: {
     type: Object,

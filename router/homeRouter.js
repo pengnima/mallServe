@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const router = Router();
 
 router.get("/multidata", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
   let id;
   if (req.hostname.indexOf("localhost") != -1) {
     id = mongoose.Types.ObjectId("5e37c0331f93ad260c84ce12");
@@ -25,7 +24,6 @@ router.get("/multidata", (req, res) => {
 });
 
 router.get("/data", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
   mallmodel.findOne(
     { sort: req.query.type, page: Number(req.query.page) },
     (err, data) => {

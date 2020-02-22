@@ -9,7 +9,6 @@ const secret = "this is a secret";
 const router = Router();
 
 router.post("/quit", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
   let rb = req.body;
 
   let newObj = {
@@ -29,7 +28,6 @@ router.post("/quit", (req, res) => {
  * 检测函数
  * */
 router.post("/check", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
   let rb = req.body;
   let tokenDecode = null;
   let refreshTokenDecode = null;
@@ -105,7 +103,6 @@ router.post("/check", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
   let rb = req.body;
 
   // 1. 查找是否存在对应的 name和pass

@@ -5,8 +5,6 @@ const userInformodel = require("../mallmodel/userInformodel.js");
 const router = Router();
 
 router.post("/", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-
   let rb = req.body;
   // 0表示没被占，1表示用户名被占，10表示邮箱被占，11表示都被占
   let obj = {
