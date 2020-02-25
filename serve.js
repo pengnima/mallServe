@@ -5,6 +5,7 @@ const detailRouter = require("./router/detailRouter.js");
 const loginRouter = require("./router/loginRouter.js");
 const registerRouter = require("./router/registerRouter.js");
 const profileRouter = require("./router/profileRouter");
+const categoryRouter = require("./router/categoryRouter");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
   app.use("/register", registerRouter);
   app.use("/login", loginRouter);
   app.use("/profile", profileRouter);
+  app.use("/category", categoryRouter);
 
   app.get("/src/*/*.jpg", (req, res) => {
     //为什么这里不用CORS解决跨域？难道这里发出的请求是同源的？
